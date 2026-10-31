@@ -1,6 +1,10 @@
+
 import streamlit as st
 import pandas as pd
 import joblib
+import uuid
+from pathlib import Path
+from services.bulk_processor import process_bulk_resumes
 
 
 # =========================
@@ -56,7 +60,7 @@ st.markdown("""
             #071426 100%
         );
 
-    color: white;
+    color: #f8fafc;
 }
 
 
@@ -86,24 +90,15 @@ st.markdown("""
 .badge {
     width: fit-content;
     margin: 0 auto 25px auto;
-
     padding: 9px 20px;
-
     border-radius: 30px;
-
     background: rgba(124, 58, 237, 0.12);
-
     border: 1px solid rgba(167, 139, 250, 0.55);
-
-    color: #c4b5fd;
-
-    font-size: 12px;
+    color: #ddd6fe;
+    font-size: 13px;
     font-weight: 700;
-
     letter-spacing: 1px;
-
-    box-shadow:
-        0 0 20px rgba(124, 58, 237, 0.15);
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
 }
 
 
@@ -111,24 +106,18 @@ st.markdown("""
 
 .hero-title {
     text-align: center;
-
     color: white;
-
     font-size: 50px;
-
     font-weight: 800;
-
     line-height: 1.12;
-
     margin-top: 10px;
-
     margin-bottom: 0;
 }
 
 .hero-gradient {
     background: linear-gradient(
         90deg,
-        #8b5cf6,
+        #a78bfa,
         #38bdf8
     );
 
@@ -141,15 +130,10 @@ st.markdown("""
 
 .hero-text {
     max-width: 720px;
-
     margin: 18px auto 42px auto;
-
     text-align: center;
-
-    color: #94a3b8;
-
+    color: #cbd5e1;
     font-size: 17px;
-
     line-height: 1.7;
 }
 
@@ -159,17 +143,13 @@ st.markdown("""
 ================================================= */
 
 div[data-testid="stVerticalBlockBorderWrapper"] {
-
-    background: rgba(10, 17, 34, 0.94) !important;
-
-    border: 2px solid #ffffff !important;
-
-    border-radius: 24px !important;
-
+    background: rgba(10, 17, 34, 0.96) !important;
+    border: 1px solid #475569 !important;
+    border-radius: 20px !important;
     padding: 18px 22px 25px 22px !important;
 
     box-shadow:
-        0 0 25px rgba(255, 255, 255, 0.08),
+        0 0 25px rgba(255, 255, 255, 0.05),
         0 20px 60px rgba(0, 0, 0, 0.40) !important;
 }
 
@@ -177,12 +157,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 /* ---------- INPUT TITLE ---------- */
 
 .input-title {
-    color: white;
-
+    color: #ffffff;
     font-size: 23px;
-
     font-weight: 700;
-
     margin-top: 5px;
 }
 
@@ -190,21 +167,19 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 /* ---------- INPUT DESCRIPTION ---------- */
 
 .input-subtitle {
-    color: #94a3b8;
-
-    font-size: 14px;
-
+    color: #cbd5e1;
+    font-size: 15px;
     margin-top: 6px;
-
     margin-bottom: 25px;
 }
 
 
 /* ---------- LABELS ---------- */
 
-label {
-    color: #dbeafe !important;
-
+label,
+[data-testid="stWidgetLabel"] p {
+    color: #f1f5f9 !important;
+    font-size: 15px !important;
     font-weight: 600 !important;
 }
 
@@ -212,13 +187,9 @@ label {
 /* ---------- SELECT BOX ---------- */
 
 div[data-baseweb="select"] > div {
-
-    background-color: #0b1222 !important;
-
-    border: 1px solid #475569 !important;
-
+    background-color: #172033 !important;
+    border: 1px solid #64748b !important;
     border-radius: 10px !important;
-
     color: white !important;
 }
 
@@ -226,7 +197,6 @@ div[data-baseweb="select"] > div {
 /* ---------- SELECTED TEXT ---------- */
 
 div[data-baseweb="select"] span {
-
     color: white !important;
 }
 
@@ -234,7 +204,6 @@ div[data-baseweb="select"] span {
 /* ---------- SLIDERS ---------- */
 
 div[data-testid="stSlider"] {
-
     padding-bottom: 15px;
 }
 
@@ -245,23 +214,14 @@ div[data-testid="stSlider"] {
     margin-top: 28px;
 }
 
-
 .stButton > button {
-
     width: 100%;
-
     height: 56px;
-
     border-radius: 13px;
-
     background: #7c3aed !important;
-
     color: white !important;
-
     border: 1px solid #a78bfa !important;
-
     font-size: 16px !important;
-
     font-weight: 700 !important;
 
     box-shadow:
@@ -273,13 +233,9 @@ div[data-testid="stSlider"] {
         background 0.25s ease;
 }
 
-
 .stButton > button:hover {
-
     background: #6d28d9 !important;
-
     color: white !important;
-
     transform: translateY(-3px);
 
     box-shadow:
@@ -292,13 +248,9 @@ div[data-testid="stSlider"] {
 ================================================= */
 
 .result-title {
-
     color: white;
-
     font-size: 22px;
-
     font-weight: 700;
-
     margin-bottom: 10px;
 }
 
@@ -306,11 +258,8 @@ div[data-testid="stSlider"] {
 /* ---------- SUCCESS MESSAGE ---------- */
 
 div[data-testid="stAlert"] {
-
     border-radius: 14px !important;
-
     font-weight: 700 !important;
-
     border: 1px solid rgba(255, 255, 255, 0.20) !important;
 }
 
@@ -318,27 +267,18 @@ div[data-testid="stAlert"] {
 /* ---------- METRIC ---------- */
 
 div[data-testid="stMetric"] {
-
-    background: #0b1222;
-
-    border: 1px solid #334155;
-
+    background: #111b30 !important;
+    border: 1px solid #475569 !important;
     border-radius: 14px;
-
     padding: 15px;
 }
 
-
 div[data-testid="stMetricLabel"] {
-
-    color: #94a3b8 !important;
+    color: #cbd5e1 !important;
 }
 
-
 div[data-testid="stMetricValue"] {
-
     color: white !important;
-
     font-weight: 800 !important;
 }
 
@@ -348,15 +288,10 @@ div[data-testid="stMetricValue"] {
 ================================================= */
 
 .profile-heading {
-
     color: white;
-
     font-size: 22px;
-
     font-weight: 700;
-
     margin-top: 30px;
-
     margin-bottom: 15px;
 }
 
@@ -364,23 +299,117 @@ div[data-testid="stMetricValue"] {
 /* ---------- PROGRESS ---------- */
 
 div[data-testid="stProgressBar"] {
-
     margin-top: 10px;
+}
+
+/* BULK UPLOAD - HIGH VISIBILITY */
+
+[data-testid="stFileUploader"] {
+    background: #111b30 !important;
+    border: 1px solid #8b5cf6 !important;
+    border-radius: 16px !important;
+    padding: 18px !important;
+}
+
+[data-testid="stFileUploaderDropzone"] {
+    background: #202b48 !important;
+    border: 2px dashed #a78bfa !important;
+    border-radius: 13px !important;
+    min-height: 120px !important;
+}
+
+[data-testid="stFileUploaderDropzoneInstructions"] {
+    color: #ffffff !important;
+}
+
+[data-testid="stFileUploaderDropzoneInstructions"] span,
+[data-testid="stFileUploaderDropzoneInstructions"] small {
+    color: #e9d5ff !important;
+    -webkit-text-fill-color: #e9d5ff !important;
+}
+
+[data-testid="stFileUploaderDropzone"] button {
+    background: #8b5cf6 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border: 1px solid #c4b5fd !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    padding: 10px 22px !important;
+    min-height: 42px !important;
+    opacity: 1 !important;
+}
+
+[data-testid="stFileUploaderDropzone"] button:hover {
+    background: #6d28d9 !important;
+    color: #ffffff !important;
+    border-color: #ddd6fe !important;
+}
+
+[data-testid="stFileUploaderDropzone"] p {
+    color: #ffffff !important;
+}
+
+/* =================================================
+   EXTRACTED RESUME TEXT
+================================================= */
+
+div[data-testid="stTextArea"] textarea {
+    background-color: #111b30 !important;
+    color: #f8fafc !important;
+    -webkit-text-fill-color: #f8fafc !important;
+    border: 1px solid #64748b !important;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+}
+
+div[data-testid="stTextArea"] label,
+div[data-testid="stTextArea"] p {
+    color: #f1f5f9 !important;
+}
+
+
+/* =================================================
+   EXPANDERS
+================================================= */
+
+div[data-testid="stExpander"] {
+    background: #111b30 !important;
+    border: 1px solid #475569 !important;
+    border-radius: 12px !important;
+}
+
+div[data-testid="stExpander"] summary,
+div[data-testid="stExpander"] summary p {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+
+/* ---------- DATA TABLE ---------- */
+
+div[data-testid="stDataFrame"] {
+    border: 1px solid #475569;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+
+/* ---------- GENERAL MARKDOWN TEXT ---------- */
+
+.stMarkdown p {
+    color: #e2e8f0;
 }
 
 
 /* ---------- FOOTER ---------- */
 
 .footer {
-
     text-align: center;
-
-    color: #64748b;
-
+    color: #cbd5e1;
     font-size: 13px;
-
     margin-top: 45px;
-
     line-height: 1.7;
 }
 
@@ -390,7 +419,6 @@ div[data-testid="stProgressBar"] {
 ================================================= */
 
 @keyframes fadeUp {
-
     from {
         opacity: 0;
         transform: translateY(15px);
@@ -402,9 +430,7 @@ div[data-testid="stProgressBar"] {
     }
 }
 
-
 .result-animation {
-
     animation: fadeUp 0.5s ease;
 }
 
@@ -448,6 +474,151 @@ st.markdown(
     ''',
     unsafe_allow_html=True
 )
+
+
+# =================================================
+# BULK RESUME UPLOAD
+# =================================================
+
+st.markdown(
+    '<div class="profile-heading">📂 Bulk Resume Screening</div>',
+    unsafe_allow_html=True
+)
+
+with st.container(border=True):
+
+    st.markdown("### Upload Multiple Resumes")
+
+    st.write(
+        "Upload up to 500 resumes together for automated text extraction."
+    )
+
+    uploaded_files = st.file_uploader(
+        "Choose resume files",
+        type=[
+            "pdf",
+            "docx",
+            "doc",
+            "txt",
+            "png",
+            "jpg",
+            "jpeg",
+            "tiff",
+            "bmp"
+        ],
+        accept_multiple_files=True
+    )
+
+    if uploaded_files:
+
+        st.write(
+            f"Total files selected: {len(uploaded_files)}"
+        )
+
+        if len(uploaded_files) > 500:
+
+            st.error(
+                "You can upload a maximum of 500 resumes."
+            )
+
+        elif st.button("📂 PROCESS ALL RESUMES"):
+
+            upload_folder = (
+                Path("uploads") / str(uuid.uuid4())
+            )
+
+            upload_folder.mkdir(
+                parents=True,
+                exist_ok=True
+            )
+
+            for index, file in enumerate(uploaded_files):
+
+                file_name = Path(file.name).name
+
+                save_path = (
+                    upload_folder / f"{index}_{file_name}"
+                )
+
+                with open(save_path, "wb") as f:
+
+                    f.write(file.getbuffer())
+
+            with st.spinner("Processing resumes..."):
+
+                results = process_bulk_resumes(
+                    str(upload_folder)
+                )
+
+            st.session_state["bulk_results"] = results
+
+            st.success("Resume processing completed.")
+
+
+    # DISPLAY SAVED RESULTS
+
+    if "bulk_results" in st.session_state:
+
+        results = st.session_state["bulk_results"]
+
+        successful = sum(
+            result["status"] == "Success"
+            for result in results
+        )
+
+        failed = len(results) - successful
+
+        st.markdown("## Processing Results")
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric(
+            "Total Resumes",
+            len(results)
+        )
+
+        col2.metric(
+            "Successful",
+            successful
+        )
+
+        col3.metric(
+            "Failed",
+            failed
+        )
+
+        result_df = pd.DataFrame([
+            {
+                "Filename": result["filename"],
+                "Status": result["status"],
+                "Characters Extracted": len(
+                    result["extracted_text"]
+                )
+            }
+            for result in results
+        ])
+
+        st.dataframe(
+            result_df,
+            use_container_width=True
+        )
+
+        for index, result in enumerate(results):
+
+            with st.expander(result["filename"]):
+
+                if result["status"] == "Success":
+
+                    st.text_area(
+                        "Extracted Resume Text",
+                        result["extracted_text"],
+                        height=220,
+                        key=f"resume_text_{index}"
+                    )
+
+                else:
+
+                    st.error(result["error"])
 
 
 # =================================================
@@ -568,6 +739,7 @@ if screen:
         "github_activity": [
             github_activity
         ]
+
     })
 
 

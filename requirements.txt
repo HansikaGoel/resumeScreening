@@ -5,3 +5,7 @@ joblib
 streamlit
 matplotlib
 seaborn
+pymupdf
+python-docx
+pytesseract
+pillow
